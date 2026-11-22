@@ -1,0 +1,85 @@
+<UserControl x:Class="CleanSlate.Views.InstallView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:CleanSlate.Controls">
+    <!-- Troisième écran : l'installation en direct, un logiciel après l'autre. -->
+    <Grid Margin="28,24,18,18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Bouton rond (avancement, puis « TERMINÉ ») + où on en est -->
+        <Grid Margin="0,0,10,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <c:RingButton Width="124" Height="124"
+                          Command="{Binding RingCommand}" IsBusy="{Binding IsBusy}" Progress="{Binding Progress}"
+                          Content="{Binding RingText}" Caption="{Binding RingCaption}" Outcome="{Binding Outcome}" />
+            <StackPanel Grid.Column="1" Margin="26,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Headline}" Style="{StaticResource HeadlineText}" />
+                <TextBlock Text="{Binding SubText}" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,0" MaxHeight="40" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Focusable="False">
+            <ItemsControl ItemsSource="{Binding Queue}" Focusable="False" Margin="0,0,10,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource RowBorder}" Padding="10,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="30" />
+                                </Grid.ColumnDefinitions>
+                                <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AppLogo}" Focusable="False" />
+                                <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="12" Margin="0,2,0,0"
+                                               Foreground="{Binding Status, Converter={StaticResource StatusBrush}}" />
+                                </StackPanel>
+                                <!-- N'apparaît que si l'installeur a créé un raccourci (menu Démarrer ou Bureau) -->
+                                <Button Grid.Column="2" Style="{StaticResource GhostButton}" Content="Ouvrir" Padding="12,5" FontSize="12.5"
+                                        VerticalAlignment="Center" Margin="0,0,6,0"
+                                        Visibility="{Binding CanLaunch, Converter={StaticResource BoolToVis}}"
+                                        Command="{Binding DataContext.LaunchCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <ContentControl Grid.Column="3" Style="{StaticResource StatusIcon}" Content="{Binding Status}"
+                                                HorizontalAlignment="Right" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Margin="0,12,10,0" Padding="0,14,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <DockPanel LastChildFill="False">
+                <Button DockPanel.Dock="Left" Style="{StaticResource GhostButton}" Content="Détail technique" Command="{Binding ToggleLogCommand}"
+                        ToolTip="Affiche ou cache ce que répond winget, l'outil de Windows qui installe les logiciels." />
+                <Button DockPanel.Dock="Left" Style="{StaticResource LinkButton}" Content="{Binding CopyLabel}" Margin="12,0,0,0"
+                        Command="{Binding CopySummaryCommand}"
+                        Visibility="{Binding IsBusy, Converter={StaticResource EqualsToVis}, ConverterParameter=False}"
+                        ToolTip="Copie le résultat, logiciel par logiciel, pour le coller dans un message à quelqu'un qui peut t'aider." />
+                <!-- Les deux boutons de droite n'existent qu'une fois l'installation finie -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            Visibility="{Binding IsBusy, Converter={StaticResource EqualsToVis}, ConverterParameter=False}">
+                    <Button Style="{StaticResource GhostButton}" Content="Réessayer ce qui a échoué" Margin="0,0,10,0"
+                            Command="{Binding RetryFailedCommand}"
+                            Visibility="{Binding HasFailures, Converter={StaticResource BoolToVis}}" />
+                    <Button Style="{StaticResource PrimaryButton}" Content="Retour à la liste" Command="{Binding BackToCatalogueCommand}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Sortie de winget en direct -->
+        <TextBox Grid.Row="3" Style="{StaticResource LogBox}" Text="{Binding Log.Text, Mode=OneWay}" Height="130" Margin="0,14,10,0"
+                 Visibility="{Binding ShowLog, Converter={StaticResource BoolToVis}}" />
+    </Grid>
+</UserControl>

@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Couleurs du thème sombre. Tout le reste de l'appli les utilise par leur nom. -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#111318" />
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#16181E" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#1C1F27" />
+    <SolidColorBrush x:Key="HoverBrush" Color="#232731" />
+    <SolidColorBrush x:Key="SelectedBrush" Color="#272C38" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#2A2F3A" />
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#4A5261" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#4C8DF6" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#6BA1F8" />
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#3B78DB" />
+    <SolidColorBrush x:Key="TextBrush" Color="#E8EAEE" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#8F97A5" />
+
+    <!-- Couleurs d'état (OK / à regarder / erreur). -->
+    <SolidColorBrush x:Key="OkBrush" Color="#3FB950" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#E3A32B" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="#F85149" />
+
+    <!-- Police d'icônes fournie avec Windows (Fluent sur Windows 11, MDL2 sur Windows 10). -->
+    <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+</ResourceDictionary>

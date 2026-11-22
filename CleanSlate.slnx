@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CleanSlate/CleanSlate.csproj" />
+  <Project Path="CleanSlate.Tests/CleanSlate.Tests.csproj" />
+</Solution>

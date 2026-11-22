@@ -1,0 +1,57 @@
+# À chaque « push » sur la branche main : tests, fabrication du .exe, puis création d'une Release.
+# L'appli regarde la dernière Release au lancement : c'est ce qui fait apparaître « Version … disponible ».
+#
+# Le numéro de version est 1.0.N, où N est le numéro de l'exécution (il augmente tout seul à chaque fois).
+# Pour passer en 1.1 ou 2.0, changer « VERSION_DE_BASE » ci-dessous.
+name: Publication
+
+on:
+  push:
+    branches: [main]
+    # Une modification du README ou de la documentation ne change pas l'appli : pas de nouvelle version.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # nécessaire pour créer la Release
+
+concurrency:
+  group: publication
+  cancel-in-progress: false
+
+env:
+  VERSION_DE_BASE: '1.0'
+
+jobs:
+  publier:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Numéro de version
+        shell: pwsh
+        run: echo "VERSION=$env:VERSION_DE_BASE.${{ github.run_number }}" >> $env:GITHUB_ENV
+
+      # Si un test échoue, rien n'est publié.
+      - name: Tests
+        run: dotnet test CleanSlate.Tests/CleanSlate.Tests.csproj -c Release -p:Version=${{ env.VERSION }}
+
+      - name: Fabrication du .exe autonome
+        run: >
+          dotnet publish CleanSlate/CleanSlate.csproj -c Release -r win-x64
+          -p:PublishSingleFile=true --self-contained true
+          -p:Version=${{ env.VERSION }} -o sortie
+
+      - name: Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v$env:VERSION" sortie/CleanSlate.exe --title "Version $env:VERSION" --generate-notes

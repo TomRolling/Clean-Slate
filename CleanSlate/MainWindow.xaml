@@ -1,0 +1,112 @@
+<Window x:Class="CleanSlate.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:CleanSlate.Views"
+        Title="Clean Slate"
+        Width="1040" Height="680" MinWidth="1040" MinHeight="680"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBackgroundBrush}"
+        Foreground="{StaticResource TextBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="14"
+        UseLayoutRounding="True">
+
+    <!-- « Host » prend toute la fenêtre ; « Root » est l'interface, dessinée pour 1040 x 680 puis agrandie ou
+         réduite d'un seul bloc (voir OnHostSizeChanged) : tout garde les mêmes proportions à n'importe quelle taille. -->
+    <Border x:Name="Host" SizeChanged="OnHostSizeChanged">
+    <Grid x:Name="Root">
+        <Grid.LayoutTransform>
+            <ScaleTransform x:Name="RootScale" ScaleX="1" ScaleY="1" />
+        </Grid.LayoutTransform>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="218" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Barre latérale : les familles de logiciels -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}">
+            <DockPanel>
+                <!-- Logo (le même dessin que l'icône du programme) + nom -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="24,22,20,16">
+                    <Grid Width="24" Height="24" VerticalAlignment="Center">
+                        <Border CornerRadius="7">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#3884FF" Offset="0" />
+                                    <GradientStop Color="#8C52F6" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <!-- Deux étincelles : l'ardoise propre (« clean slate ») -->
+                        <Path Fill="White"
+                              Data="M 10.5,5.5 Q 11.3,12.7 18.5,13.5 Q 11.3,14.3 10.5,21.5 Q 9.7,14.3 2.5,13.5 Q 9.7,12.7 10.5,5.5 Z
+                                    M 17.8,3.2 Q 18.12,6.08 21,6.4 Q 18.12,6.72 17.8,9.6 Q 17.48,6.72 14.6,6.4 Q 17.48,6.08 17.8,3.2 Z" />
+                    </Grid>
+                    <TextBlock Text="Clean Slate" FontSize="18" FontWeight="SemiBold" Margin="11,0,0,1"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Bottom" Text="{Binding Version, StringFormat=Version {0}}"
+                           Margin="26,6,24,14" FontSize="12"
+                           Foreground="{StaticResource TextMutedBrush}" />
+
+                <!-- Encart « nouvelle version » : n'apparaît que si une version plus récente est publiée -->
+                <Border DockPanel.Dock="Bottom" Margin="12,6,12,6" Padding="14,12" CornerRadius="10"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        BorderBrush="{StaticResource AccentBrush}" BorderThickness="1"
+                        Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding UpdateText}" FontSize="12.5" TextWrapping="Wrap" />
+                        <Button Style="{StaticResource PrimaryButton}" Content="Mettre à jour" Padding="10,7" FontSize="12.5"
+                                Margin="0,10,0,0" Command="{Binding InstallUpdateCommand}"
+                                Visibility="{Binding UpdateInProgress, Converter={StaticResource EqualsToVis}, ConverterParameter=False}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Pendant les écrans « Où installer ? » et « Installation », on ne change plus de famille -->
+                <ListBox ItemsSource="{Binding Catalogue.Filters}" SelectedItem="{Binding Catalogue.CurrentFilter}"
+                         ItemContainerStyle="{StaticResource SidebarItemStyle}"
+                         Background="Transparent" BorderThickness="0" FontSize="13.5"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.Style>
+                        <Style TargetType="ListBox">
+                            <Setter Property="IsHitTestVisible" Value="False" />
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
+                            <Setter Property="Opacity" Value="0.45" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Catalogue.Step}" Value="Catalogue">
+                                    <Setter Property="IsHitTestVisible" Value="True" />
+                                    <Setter Property="Focusable" Value="True" />
+                                    <Setter Property="KeyboardNavigation.TabNavigation" Value="Continue" />
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Style>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel Width="170">
+                                <!-- Nombre de logiciels cochés dans la famille -->
+                                <Border DockPanel.Dock="Right" Background="{StaticResource AccentBrush}" CornerRadius="9" Padding="7,1"
+                                        VerticalAlignment="Center"
+                                        Visibility="{Binding Badge, Converter={StaticResource EqualsToVis}, ConverterParameter=!}">
+                                    <TextBlock Text="{Binding Badge}" FontSize="11.5" FontWeight="SemiBold" Foreground="White" />
+                                </Border>
+                                <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource IconFont}"
+                                           FontSize="15" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Les trois écrans, l'un à la place de l'autre. Largeur plafonnée : en plein écran le contenu reste groupé. -->
+        <Grid Grid.Column="1" MaxWidth="1180" DataContext="{Binding Catalogue}">
+            <views:CatalogueView Visibility="{Binding Step, Converter={StaticResource EqualsToVis}, ConverterParameter=Catalogue}" />
+            <views:ReviewView Visibility="{Binding Step, Converter={StaticResource EqualsToVis}, ConverterParameter=Review}" />
+            <views:InstallView Visibility="{Binding Step, Converter={StaticResource EqualsToVis}, ConverterParameter=Install}" />
+        </Grid>
+    </Grid>
+    </Border>
+</Window>
